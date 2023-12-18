@@ -1,0 +1,35 @@
+% Given parameters
+zeta = 0.7;
+dynamicError = 0.05; % ±5%
+fmax = 200;
+% Define the function M_w
+M_w = @(w, wn, zeta) 1 ./ sqrt(1 - (((w / wn).^2) + ((2 * zeta * (w / wn)).^2)));
+
+% Frequency range of interest
+w_range = linspace(0, fmax, 1000); % Frequencies below 200 Hz
+
+% Calculate dynamic error for different values of omega_n
+dynamicError_values = zeros(size(w_range));
+for i = 1:length(w_range)
+    w = w_range(i);
+    % Solve for omega_n using the given formula
+    options = optimset('Display', 'off');
+    omega_n = fminsearch(@(wn) abs(M_w(w, wn, zeta) - (1 - dynamicError)), 100, options);
+    dynamicError_values(i) = M_w(w, omega_n, zeta);
+end
+
+% Plot the results
+figure;
+plot(w_range, dynamicError_values, 'LineWidth', 2);
+xlabel('Input Signal Frequency (Hz)');
+ylabel('Dynamic Error');
+title('Dynamic Error vs. Input Signal Frequency');
+grid on;
+
+% Display the acceptable values of omega_n
+acceptable_omega_n = zeros(size(w_range));
+for i = 1:length(w_range)
+    acceptable_omega_n(i) = fminsearch(@(wn) abs(M_w(w_range(i), wn, zeta) - (1 - dynamicError)), 100, options);
+end
+disp('Acceptable values of omega_n:');
+disp(acceptable_omega_n);
