@@ -1,0 +1,128 @@
+% Given parameters
+M = 1; % Total mass
+K = 10; % Spring constant
+
+% Define a range of B/M values
+B_over_M_values = [0.1, 0.5, 1, 2];
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Time vector for responses
+t_unit_step = linspace(0, 100, 1000); % Extend the time range for unit step response
+
+% Figure for Unit Step Responses
+figure;
+
+hold on;
+
+legend_labels_unit_step = cell(length(B_over_M_values), 1);
+
+for i = 1:length(B_over_M_values)
+    B_over_M = B_over_M_values(i);
+    
+    % Transfer function
+    numerator = 1;
+    denominator = [M, B_over_M * M, K];
+    sys = tf(numerator, denominator);
+    
+    % Step response
+    step_response = step(sys, t_unit_step);
+    
+    % Plot unit step response with different color for each B/M
+    plot(t_unit_step, step_response, 'LineWidth', 1.5);
+    legend_labels_unit_step{i} = ['B/M = ' num2str(B_over_M)];
+end
+
+% Finalize the plot for unit step response
+title('Unit Step Response for Different B/M');
+xlabel('Time');
+ylabel('Amplitude');
+legend(legend_labels_unit_step, 'Location', 'best');
+hold off;
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+t_frequency = logspace(-1, 1, 1000); % Extend the frequency range for Bode plots
+% t_frequency = logspace(-1, 1, 1000); % Extend the frequency range for Bode plots
+%The first argument, -1, is the starting point of the logarithmic sequence, representing 10^(-1).
+%The second argument, 2, is the ending point of the logarithmic sequence, representing 10^2.
+%The third argument, 1000, is the number of points in the vector.
+% Figure for Frequency Responses (Magnitude and Phase)
+figure;
+
+% Magnitude subplot
+subplot(2, 1, 1);
+hold on;
+
+% Phase subplot
+subplot(2, 1, 2);
+hold on;
+
+legend_labels_frequency = cell(length(B_over_M_values) * 2, 1); % Double the length for magnitude and phase
+
+for i = 1:length(B_over_M_values)
+    B_over_M = B_over_M_values(i);
+    
+    % Transfer function
+    numerator = 1;
+    denominator = [M, B_over_M * M, K];
+    sys = tf(numerator, denominator);
+    
+    % Bode plot for magnitude
+    subplot(2, 1, 1);
+    [mag,~,w] = bode(sys, t_frequency);
+    plot(w, 20*log10(squeeze(mag)), 'LineWidth', 1.5);
+    legend_labels_frequency{2*i-1} = ['Magnitude - B/M = ' num2str(B_over_M)];
+    
+    % Bode plot for phase
+    subplot(2, 1, 2);
+    [~, phase] = bode(sys, t_frequency);
+    plot(w, squeeze(phase), 'LineWidth', 1.5);
+    legend_labels_frequency{2*i} = ['Phase - B/M = ' num2str(B_over_M)];
+end
+
+% Finalize the plots for frequency response
+subplot(2, 1, 1);
+title('Frequency Response (Magnitude)');
+legend(legend_labels_frequency{1:2:end}, 'Location', 'best');
+xlabel('Frequency (rad/s)');
+xlim([min(w) max(w)]); % Set x-axis limits
+hold off;
+
+subplot(2, 1, 2);
+title('Frequency Response (Phase)');
+legend(legend_labels_frequency{2:2:end}, 'Location', 'best');
+xlabel('Frequency (rad/s)');
+xlim([min(w) max(w)]); % Set x-axis limits
+hold off;
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+% Time vector for responses
+t = linspace(0, 10, 1000);
+
+% Ramp input
+u_ramp = t;
+
+% Figure for Ramp Responses
+figure;
+for i = 1:length(B_over_M_values)
+    B_over_M = B_over_M_values(i);
+    % Transfer function
+    numerator = 1;
+    denominator = [M, B_over_M * M, K];
+    sys = tf(numerator, denominator);
+    
+    % Simulate system response to ramp input
+    [y_ramp, ~, ~] = lsim(sys, u_ramp, t);
+    
+    % Plot ramp response with different color for each B/M
+    plot(t, y_ramp, 'LineWidth', 1.5, 'DisplayName', ['B/M = ' num2str(B_over_M)]);
+    hold on;
+end
+
+title('Ramp Response for Different B/M');
+xlabel('Time');
+ylabel('Amplitude');
+legend('Location', 'best');
+hold off;
